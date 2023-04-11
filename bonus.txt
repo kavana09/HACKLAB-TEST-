@@ -1,0 +1,131 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+Node* createNode(int data) {
+    Node* newNode = (Node*) malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void insert(Node** head, int data) {
+    Node* newNode = createNode(data);
+    if (*head == NULL) {
+        *head = newNode;
+    } else {
+        Node* current = *head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+    }
+}
+
+void deleteNode(Node** head, int position) {
+    if (*head == NULL) {
+        return;
+    }
+    Node* current = *head;
+    if (position == 0) {
+        *head = (*head)->next;
+        free(current);
+        return;
+    }
+    int i;
+    for (i = 0; current != NULL && i < position - 1; i++) {
+        current = current->next;
+    }
+    if (current == NULL || current->next == NULL) {
+        return;
+    }
+    Node* nextNode = current->next->next;
+    free(current->next);
+    current->next = nextNode;
+}
+
+void deleteAll(Node** head, int data) {
+    Node* current = *head;
+    Node* prev = NULL;
+    while (current != NULL) {
+        if (current->data == data) {
+            if (prev == NULL) {
+                *head = current->next;
+            } else {
+                prev->next = current->next;
+            }
+            free(current);
+            current = prev == NULL ? *head : prev->next;
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+void deleteList(Node** head) {
+    Node* current = *head;
+    Node* nextNode = NULL;
+    while (current != NULL) {
+        nextNode = current->next;
+        free(current);
+        current = nextNode;
+    }
+    *head = NULL;
+}
+
+void displayList(Node* head) {
+    printf("List: ");
+    while (head != NULL) {
+        printf("%d ", head->data);
+        head = head->next;
+    }
+    printf("\n");
+}
+
+void displayInverted(Node* head) {
+    printf("Inverted list: ");
+    if (head == NULL) {
+        printf("\n");
+        return;
+    }
+    displayInverted(head->next);
+    printf("%d ", head->data);
+}
+
+int memoryUsed(Node* head) {
+    int count = 0;
+    while (head != NULL) {
+        count += sizeof(Node);
+        head = head->next;
+    }
+    return count;
+}
+
+void deleteAllAndNext(Node** head, int data) {
+    Node* current = *head;
+    Node* prev = NULL;
+    while (current != NULL) {
+        if (current->data == data) {
+            if (prev == NULL) {
+                *head = current->next->next;
+                free(current->next);
+                free(current);
+                current = *head;
+            } else {
+                prev->next = current->next->next;
+                free(current->next);
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+

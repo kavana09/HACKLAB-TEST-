@@ -1,0 +1,91 @@
+2)
+	TASK 1
+
+YOLOv5 in Python with PyTorch and OpenCV.
+#First, we need to install the necessary packages
+
+!pip install torch torchvision opencv-python
+!git clone https://github.com/ultralytics/yolov5.git
+
+#Next, we can use the pre-trained YOLOv5 model to detect individuals in images
+
+import cv2
+import torch
+from PIL import Image
+import numpy as np
+
+# Load the YOLOv5 model
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+
+# Load the image
+img_path = 'building_image.jpg'
+img = cv2.imread(img_path)
+
+# Convert the image from OpenCV BGR format to RGB format
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+# Convert the image to a PyTorch tensor
+img_tensor = torch.from_numpy(img).permute(2, 0, 1).float().div(255.0).unsqueeze(0)
+
+# Run inference on the image using the YOLOv5 model
+results = model(img_tensor)
+
+# Extract the bounding boxes, confidences, and class IDs from the results
+boxes = results.xyxy[0].numpy()
+confidences = results.xyxy[0, :, 4].numpy()
+class_ids = results.xyxy[0, :, 5].numpy()
+
+# Filter out the bounding boxes for person class (class ID 0)
+person_boxes = boxes[class_ids == 0]
+person_confidences = confidences[class_ids == 0]
+
+# Draw the bounding boxes on the image
+for i, box in enumerate(person_boxes):
+    x1, y1, x2, y2 = box
+    confidence = person_confidences[i]
+    cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+    cv2.putText(img, f'Person ({confidence:.2f})', (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+# Display the image with bounding boxes
+cv2.imshow('Image', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+	TASK 2
+
+YOLOv5 is a state-of-the-art object detection model that has been shown to perform well on small objects.
+
+To divide the images into smaller tiles, we can use the OpenCV library.code that will divide an image into 12 tiles, each of size 640x480, with 50% overlap:
+
+import cv2
+
+def divide_image_into_tiles(image_path, tile_size=(640, 480), overlap=0.5):
+    # Read the image
+    image = cv2.imread(image_path)
+
+    # Get the dimensions of the image
+    height, width, _ = image.shape
+
+    # Calculate the number of rows and columns of tiles
+    rows = int(height / tile_size[1] / (1 - overlap) + 1)
+    cols = int(width / tile_size[0] / (1 - overlap) + 1)
+
+    # Initialize the list of tiles
+    tiles = []
+
+    # Loop over the rows and columns of tiles
+    for row in range(rows):
+        for col in range(cols):
+            # Calculate the top-left and bottom-right coordinates of the tile
+            top_left = (int(col * tile_size[0] * (1 - overlap)), int(row * tile_size[1] * (1 - overlap)))
+            bottom_right = (int(top_left[0] + tile_size[0]), int(top_left[1] + tile_size[1]))
+
+            # Add the tile to the list
+            tiles.append(image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]])
+
+    # Return the list of tiles
+    return tiles
+
+Once you have divided the image into tiles, you can run YOLOv5 on each tile separately and combine the results to get the final detection results.
+To compare the performance of the model with and without the technique of dividing images into smaller tiles, you can measure the detection accuracy and speed. You can also visualize the detection results for both cases to see if there is any improvement in detecting small objects
